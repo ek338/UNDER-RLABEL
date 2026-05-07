@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>라벨 뒤의 이야기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="mobile-viewport">
+        <!-- 시간 오버레이 (아침/낮/저녁/밤) -->
+        <div id="time-overlay" class="morning"></div>
+
+        <!-- [SCREEN 0] 나이/성별 조사 -->
+        <div id="survey-screen" class="screen">
+            <div class="survey-box">
+                <h2>사용자 조사</h2>
+                <p>본 조사는 온라인 영향력 척도 분석을 위한 기초 데이터로 활용됩니다.</p>
+                <input type="number" id="user-age" placeholder="나이 입력">
+                <select id="user-gender">
+                    <option value="" disabled selected>성별 선택</option>
+                    <option value="male">남성</option>
+                    <option value="female">여성</option>
+                </select>
+                <button class="btn-start" onclick="submitSurvey()">입력 완료</button>
+            </div>
+        </div>
+
+        <!-- [SCREEN 1] 메인 게임 화면 -->
+        <div id="game-screen" class="screen hidden">
+            <header class="status-bar">
+                <div class="info">
+                    <span id="display-day">요일 1</span> <span id="display-time">아침</span>
+                </div>
+                <div class="stats">
+                    <p>자금: ₩<span id="fund">10,000,000</span></p>
+                    <p>생존력: <span id="survival">45</span>/100</p>
+                </div>
+            </header>
+
+            <!-- 공장 배경 및 캐릭터 (CSS Sprite 적용 권장) -->
+            <div class="factory-floor">
+                <div class="worker-grid">
+                    <!-- 노동자 캐릭터들이 미싱질 하는 애니메이션 영역 -->
+                    <div class="worker working"></div>
+                    <!-- ... 반복 -->
+                </div>
+            </div>
+
+            <!-- 하단 의사결정 슬라이더 -->
+            <div class="decision-area">
+                <div class="slider-labels"><span>이윤 추구</span><span>복지 투자</span></div>
+                <input type="range" id="choice-slider" min="0" max="100" value="50">
+                <button class="btn-action" onclick="finishDay()">오늘 하루 끝내기</button>
+            </div>
+
+            <!-- 하단 메뉴 -->
+            <nav class="bottom-nav">
+                <div class="nav-item">지시</div>
+                <div class="nav-item">복지</div>
+                <div class="nav-item">재무</div>
+                <div class="nav-item">정보</div>
+            </nav>
+        </div>
+
+        <!-- [SCREEN 2] 엔딩 (시간 역행) -->
+        <div id="ending-screen" class="screen hidden black-out">
+            <div class="glitch-text">SYSTEM OVERLOAD...</div>
+            <div id="retro-info" class="hidden">
+                <p>56년 전 평화시장의 모습은<br>지금의 모습과 다르지 않습니다.</p>
+                <button onclick="location.reload()">다시하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flask 서버 시작",
+            "type": "shell",
+            "command": "python",
+            "args": ["app.py"],
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "."
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Running on http"
+                }
+            }
+        }
+    ]
+}

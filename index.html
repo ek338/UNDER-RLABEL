@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>라벨 뒤의 이야기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#1A0F08;--bg2:#0D0806;--br-dk:#2C1810;--br-md:#3A2010;--br-lt:#4A2C1A;
+  --cream:#D4B896;--cream2:#E8D5BC;--amber:#C4832A;--amber2:#D4A85A;
+  --red:#8B1A1A;--grn:#2A5A2A;--txt:#1A0F08;
+  --W:min(480px,100vw);
+}
+body{
+  background:var(--bg);color:var(--cream);
+  font-family:'Courier New','나눔고딕코딩','Malgun Gothic',monospace;
+  display:flex;justify-content:center;align-items:center;
+  min-height:100vh;overflow:hidden;
+}
+
+/* ── SCREENS ─────────────────────────────────────── */
+.scr{display:none;width:var(--W);height:100vh;max-height:900px;flex-direction:column;position:relative;overflow:hidden;}
+.scr.on{display:flex;}
+
+/* ── INTRO ───────────────────────────────────────── */
+#s-intro{background:url('static/images/bg-start.png') center/cover no-repeat;background-color:var(--bg2);justify-content:center;align-items:center;text-align:center;padding:40px 24px;gap:24px;}
+#s-intro::before{content:'';position:absolute;inset:0;background:rgba(10,6,3,.72);z-index:0;}
+#s-intro>*{position:relative;z-index:1;}
+.intro-pre{font-size:10px;color:#3A2010;letter-spacing:.2em;line-height:1.8;opacity:.7;}
+.intro-box{border:2px solid var(--amber);padding:24px 30px;background:rgba(44,24,16,.9);}
+.intro-ttl{font-size:26px;color:var(--cream2);letter-spacing:.2em;line-height:1.5;}
+.intro-sub{font-size:10px;color:var(--amber2);letter-spacing:.35em;margin-top:6px;opacity:.8;}
+.intro-desc{font-size:12px;line-height:2.2;color:var(--cream);text-align:left;border-left:2px solid var(--amber);padding-left:14px;max-width:360px;}
+
+/* ── START ───────────────────────────────────────── */
+#s-start{background:var(--bg);}
+.start-top{flex:1;position:relative;overflow:hidden;min-height:0;background:url('static/images/bg-start.png') center/cover no-repeat;background-color:#1A0F08;}
+.start-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;background:linear-gradient(to bottom,rgba(10,6,3,.55) 0%,rgba(10,6,3,.3) 50%,rgba(10,6,3,.7) 100%);}
+.g-ttl{font-size:24px;color:var(--cream2);letter-spacing:.15em;text-shadow:2px 2px 0 #000,-1px -1px 0 #000;}
+.g-sub{font-size:10px;color:var(--amber2);letter-spacing:.35em;}
+.start-form{background:rgba(26,15,8,.97);border-top:2px solid var(--amber);padding:20px 18px;}
+.f-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.f-lbl{font-size:12px;color:var(--cream);letter-spacing:.1em;min-width:54px;}
+.f-inp{background:var(--br-dk);border:1px solid var(--amber);color:var(--cream2);font-family:inherit;font-size:13px;padding:7px 10px;flex:1;outline:none;}
+.f-inp:focus{border-color:var(--cream2);}
+.g-btns{display:flex;gap:8px;flex:1;}
+.g-btn{flex:1;background:var(--br-dk);border:1px solid var(--amber);color:var(--cream);font-family:inherit;font-size:12px;padding:7px;cursor:pointer;transition:.1s;}
+.g-btn.sel{background:var(--amber);color:var(--br-dk);}
+.disc{font-size:10px;color:#5A3A2A;text-align:center;margin-top:10px;line-height:1.7;}
+
+/* ── MAIN ────────────────────────────────────────── */
+#s-main{background:var(--br-dk);}
+.scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:5;}
+
+/* Status bar */
+#sbar{background:var(--br-dk);border-bottom:2px solid var(--amber);padding:10px 14px;flex-shrink:0;z-index:2;}
+.sr1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.day-lbl{font-size:13px;color:var(--cream2);font-weight:bold;letter-spacing:.06em;}
+.money-box{display:flex;align-items:center;gap:6px;}
+.money-lbl{font-size:9px;color:var(--amber2);letter-spacing:.1em;}
+.money-val{font-size:22px;color:var(--cream2);font-weight:bold;letter-spacing:.04em;}
+.money-val.low{color:#D4643A;}
+/* 생존력 풀너비 바 */
+.surv-row{display:flex;align-items:center;gap:8px;}
+.surv-pct{font-size:12px;color:var(--cream2);min-width:36px;text-align:right;font-weight:bold;}
+.sbar{flex:1;height:12px;background:rgba(0,0,0,.4);border:1px solid var(--amber);overflow:hidden;border-radius:1px;}
+.sbar-fill{height:100%;background:var(--grn);transition:width .5s,background .5s;}
+.sbar-fill.warn{background:#CC8800;}
+.sbar-fill.danger{background:var(--red);animation:pulse-red .8s infinite alternate;}
+@keyframes pulse-red{from{opacity:.7}to{opacity:1}}
+.sbar-lbl{font-size:9px;color:var(--amber2);letter-spacing:.08em;min-width:54px;}
+
+/* Factory area */
+#cv-wrap{flex:1;min-height:120px;position:relative;overflow:hidden;background:url('static/images/bg-faotory.png') center/cover no-repeat;background-color:#1E1008;}
+#danger-ol{position:absolute;inset:0;background:rgba(139,26,26,0);transition:background .6s;pointer-events:none;}
+#danger-ol.pulse{animation:pulse-danger .8s infinite alternate;}
+@keyframes pulse-danger{from{opacity:.6}to{opacity:1}}
+
+/* Message box */
+#msgbox{background:rgba(26,15,8,.95);border-top:2px solid var(--amber);padding:10px 14px;min-height:78px;flex-shrink:0;z-index:2;}
+.msg-spk{font-size:9px;color:var(--amber2);letter-spacing:.2em;margin-bottom:4px;}
+.msg-txt{font-size:12px;color:var(--cream2);line-height:1.9;letter-spacing:.03em;}
+.cur{display:inline-block;width:8px;height:12px;background:var(--cream2);animation:blink .7s infinite;margin-left:2px;vertical-align:text-bottom;}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* Action panel */
+#apanel{background:var(--br-md);border-top:2px solid var(--amber);padding:12px 14px;min-height:155px;flex-shrink:0;z-index:2;}
+.pane{display:none;}
+.pane.on{display:block;}
+
+/* Slider */
+.sldr-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--cream);margin-bottom:6px;}
+.sldr-lbl em{color:var(--amber2);font-style:normal;}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;background:var(--br-dk);border:1px solid var(--amber);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--amber);border:2px solid var(--cream);cursor:pointer;}
+.sldr-hint{display:flex;justify-content:space-between;font-size:9px;color:#5A3A2A;margin-top:3px;}
+.prev-row{display:flex;gap:8px;margin-top:10px;}
+.prev-item{flex:1;background:var(--br-dk);border:1px solid #2A1508;padding:6px 8px;text-align:center;}
+.prev-item .pl{font-size:9px;color:var(--amber2);margin-bottom:3px;}
+.prev-item .pv{font-size:13px;color:var(--cream2);}
+.pv.pos{color:#5AAA5A;}.pv.neg{color:#D4643A;}
+
+.cbtn{width:100%;background:var(--amber);border:none;color:var(--br-dk);font-family:inherit;font-size:13px;font-weight:bold;letter-spacing:.2em;padding:10px;cursor:pointer;margin-top:10px;transition:.1s;}
+.cbtn:hover{background:var(--cream2);}
+.cbtn:active{transform:translate(1px,1px);}
+
+/* Welfare */
+.wf-list{display:flex;flex-direction:column;gap:7px;}
+.wf-item{display:flex;align-items:center;gap:10px;background:var(--br-dk);border:1px solid #3A1A08;padding:8px 10px;cursor:pointer;font-size:11px;color:var(--cream);transition:.1s;}
+.wf-item.sel{border-color:var(--amber);}
+.wf-chk{width:14px;height:14px;border:1px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--amber);flex-shrink:0;}
+.wf-eff{font-size:9px;color:var(--amber2);margin-top:2px;}
+
+/* Finance */
+.fin-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1A0A00;font-size:11px;}
+.fin-tot{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;color:var(--cream2);border-top:2px solid var(--amber);margin-top:4px;}
+.fin-note{font-size:9px;color:#5A3A2A;margin-top:7px;line-height:1.6;}
+
+/* Info */
+.info-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1A0A00;font-size:11px;}
+.il{color:#7A5A4A;}.iv{color:var(--cream2);}
+
+/* Bottom nav */
+#bnav{display:flex;border-top:2px solid var(--amber);background:var(--br-dk);flex-shrink:0;z-index:2;}
+.nb{flex:1;background:none;border:none;border-right:1px solid #2A1208;color:var(--cream);font-family:inherit;font-size:9px;letter-spacing:.05em;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.1s;}
+.nb:last-child{border-right:none;}
+.nb.on{background:var(--br-lt);color:var(--amber2);}
+.nb:hover{background:var(--br-md);}
+.ni{font-size:16px;}
+
+/* ── EVENT OVERLAY ───────────────────────────────── */
+#evt-ovl{display:none;position:fixed;inset:0;background:rgba(13,8,6,.92);z-index:100;justify-content:center;align-items:center;padding:20px;}
+#evt-ovl.on{display:flex;}
+.evt-box{background:var(--br-md);border:3px solid var(--amber);padding:22px;width:100%;max-width:400px;box-shadow:0 0 24px rgba(196,131,42,.3);}
+.evt-ttl{font-size:10px;color:var(--amber2);letter-spacing:.3em;margin-bottom:12px;border-bottom:1px solid #2A1208;padding-bottom:8px;}
+.evt-txt{font-size:12px;color:var(--cream2);line-height:2;margin-bottom:16px;white-space:pre-line;}
+.evt-opts{display:flex;flex-direction:column;gap:8px;}
+.eopt{background:var(--br-dk);border:1px solid var(--amber);color:var(--cream);font-family:inherit;font-size:11px;padding:10px 14px;cursor:pointer;text-align:left;line-height:1.7;transition:.1s;white-space:pre-line;}
+.eopt:hover{background:var(--amber);color:var(--br-dk);}
+.eopt-eff{font-size:9px;color:var(--amber2);margin-top:3px;}
+
+/* ── RESULT MODAL ────────────────────────────────── */
+#res-modal{display:none;position:fixed;inset:0;background:rgba(13,8,6,.96);z-index:150;justify-content:center;align-items:center;padding:20px;}
+#res-modal.on{display:flex;}
+.res-box{background:var(--br-md);border:3px solid var(--amber);padding:20px;width:100%;max-width:400px;}
+.res-ttl{font-size:12px;color:var(--amber2);letter-spacing:.25em;text-align:center;margin-bottom:14px;}
+.res-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1A0800;font-size:12px;}
+.res-row.big{border-top:2px solid var(--amber);border-bottom:none;margin-top:4px;padding-top:7px;font-size:13px;color:var(--cream2);}
+.rl{color:#7A5A4A;}.rp{color:#5AAA5A;}.rm{color:#D4643A;}
+.res-comm{margin-top:12px;padding:10px;background:var(--br-dk);border-left:3px solid var(--amber);font-size:11px;color:var(--cream);line-height:1.9;}
+
+/* ── MENU OVERLAY ────────────────────────────────── */
+#menu-ovl{display:none;position:fixed;top:0;right:0;width:200px;height:100%;background:var(--br-dk);border-left:2px solid var(--amber);z-index:200;flex-direction:column;padding:20px 0;}
+#menu-ovl.on{display:flex;}
+.mcls{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--cream);font-size:18px;cursor:pointer;}
+.mttl{font-size:10px;color:var(--amber2);letter-spacing:.3em;padding:0 20px 14px;border-bottom:1px solid #2A1208;margin-bottom:8px;}
+.mi{display:block;width:100%;background:none;border:none;border-bottom:1px solid #1A0800;color:var(--cream);font-family:inherit;font-size:12px;letter-spacing:.1em;padding:13px 20px;cursor:pointer;text-align:left;transition:.1s;}
+.mi:hover{background:var(--br-md);}
+.mver{margin-top:auto;padding:14px 20px;font-size:9px;color:#3A2010;}
+
+/* ── ENDING ──────────────────────────────────────── */
+#s-end{background:#000;justify-content:center;align-items:center;text-align:center;padding:28px 20px;position:relative;overflow:hidden;}
+#end-cv{position:absolute;inset:0;width:100%;height:100%;z-index:2;}
+#end-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:1;opacity:0;transition:opacity 1.8s ease;filter:sepia(.4) brightness(.6);}
+#end-img.show{opacity:1;}
+.end-content{position:relative;z-index:4;max-width:380px;width:100%;}
+.end-type{font-size:10px;letter-spacing:.4em;color:#555;margin-bottom:20px;}
+.end-hl{font-size:22px;color:var(--cream2);letter-spacing:.15em;line-height:1.6;margin-bottom:18px;white-space:pre-line;}
+.end-txt{font-size:12px;color:var(--cream);line-height:2.3;margin-bottom:24px;opacity:.9;white-space:pre-line;}
+.end-stats{background:rgba(44,24,16,.85);border:1px solid #2A1208;padding:14px;margin-bottom:22px;text-align:left;}
+.end-sr{display:flex;justify-content:space-between;font-size:11px;color:var(--cream);padding:4px 0;}
+.end-sr .sl{color:#6A4A3A;}
+.end-btns{display:flex;flex-direction:column;gap:10px;}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.btn-p{background:var(--br-md);border:2px solid var(--amber);color:var(--cream2);font-family:inherit;font-size:13px;letter-spacing:.2em;padding:12px 36px;cursor:pointer;transition:.1s;}
+.btn-p:hover{background:var(--amber);color:var(--br-dk);}
+.btn-p:active{transform:translate(1px,1px);}
+.btn-s{background:transparent;border:1px solid #3A1A08;color:#5A3A2A;font-family:inherit;font-size:12px;letter-spacing:.15em;padding:10px;cursor:pointer;transition:.1s;}
+.btn-s:hover{border-color:var(--amber);color:var(--cream);}
+
+/* ── GAME OVER ───────────────────────────────────── */
+#s-gameover{background:#0A0603;justify-content:center;align-items:center;text-align:center;padding:32px 24px;gap:14px;transition:background 1.2s;}
+.go-icon{font-size:56px;line-height:1;}
+.go-type{font-size:9px;letter-spacing:.45em;color:#555;}
+.go-hl{font-size:24px;color:var(--cream2);letter-spacing:.1em;line-height:1.55;white-space:pre-line;}
+.go-txt{font-size:12px;color:var(--cream);line-height:2;opacity:.85;white-space:pre-line;border-left:2px solid var(--amber);padding-left:12px;text-align:left;max-width:340px;}
+.go-stats{background:rgba(44,24,16,.85);border:1px solid #2A1208;padding:10px 14px;width:100%;max-width:340px;text-align:left;}
+.go-sr{display:flex;justify-content:space-between;font-size:11px;color:var(--cream);padding:3px 0;}
+.go-sl{color:#6A4A3A;}
+
+/* ── TIMELAPSE ───────────────────────────────────── */
+#s-timelapse{background:#050302;justify-content:center;align-items:center;text-align:center;padding:36px 24px;gap:0;position:relative;overflow:hidden;}
+#tl-cv{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;}
+.tl-content{position:relative;z-index:4;max-width:360px;width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.tl-yr{font-size:10px;letter-spacing:.45em;color:#4A2C1A;padding:3px 12px;border:1px solid #2A1208;}
+.tl-hl{font-size:18px;color:var(--amber);letter-spacing:.08em;line-height:1.7;white-space:pre-line;}
+.tl-txt{font-size:11px;color:var(--cream);line-height:2.1;text-align:left;border-left:2px solid var(--amber);padding-left:12px;white-space:pre-line;}
+.tl-quote{font-size:12px;color:var(--cream2);font-style:italic;line-height:1.9;padding:12px 14px;background:rgba(44,24,16,.7);border:1px solid #2A1208;width:100%;text-align:left;}
+
+/* ── FINAL END links ──────────────────────────────── */
+.end-link{display:block;width:100%;background:var(--amber);border:none;color:var(--br-dk);font-family:inherit;font-size:13px;font-weight:bold;letter-spacing:.15em;padding:13px;cursor:pointer;text-decoration:none;text-align:center;transition:.1s;margin-bottom:8px;}
+.end-link:hover{background:var(--cream2);}
+.end-link-s{display:block;width:100%;background:transparent;border:1px solid var(--amber);color:var(--amber2);font-family:inherit;font-size:12px;letter-spacing:.1em;padding:11px;cursor:pointer;text-decoration:none;text-align:center;transition:.1s;margin-bottom:8px;}
+.end-link-s:hover{border-color:var(--cream2);color:var(--cream);}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media(max-height:680px){
+  #cv-wrap{min-height:90px;}
+  #msgbox{min-height:60px;padding:7px 14px;}
+  #apanel{min-height:130px;padding:8px 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══════════════════════════════════════════════ -->
+<div id="s-intro" class="scr on">
+  <div class="intro-pre">// 실제 1970년대 사진과 현실 외국인 노동자 사건 기반</div>
+  <div class="intro-box">
+    <div class="intro-ttl">라벨 뒤의<br>이야기</div>
+    <div class="intro-sub">LABEL BEHIND THE STORY</div>
+  </div>
+  <div class="intro-desc">
+    56년 전 서울 평화시장에서 들리던 미싱소리가<br>
+    과거의 우리나라의 모습이<br>
+    다른 나라에서 이루어지고 있습니다
+  </div>
+  <button class="btn-p" onclick="showScr('start')">다 음 ▶</button>
+</div>
+
+<!-- ══ START ══════════════════════════════════════════════ -->
+<div id="s-start" class="scr">
+  <div class="start-top">
+    <div class="start-overlay">
+      <div class="g-ttl">라벨 뒤의 이야기</div>
+      <div class="g-sub">LABEL BEHIND THE STORY</div>
+    </div>
+  </div>
+  <div class="start-form">
+    <div class="f-row">
+      <span class="f-lbl">나 이</span>
+      <input id="inp-age" type="number" class="f-inp" placeholder="나이 입력" min="18" max="80">
+    </div>
+    <div class="f-row">
+      <span class="f-lbl">성 별</span>
+      <div class="g-btns">
+        <button class="g-btn" id="btn-m" onclick="selGender('m')">남 성</button>
+        <button class="g-btn" id="btn-f" onclick="selGender('f')">여 성</button>
+      </div>
+    </div>
+    <button class="btn-p" style="width:100%;margin-top:4px" onclick="startGame()">S T A R T</button>
+    <div class="disc">* 이 게임은 실화를 기반으로 한 창작물로, 특정 인물·사건·단체와 무관합니다.</div>
+  </div>
+</div>
+
+<!-- ══ MAIN ═══════════════════════════════════════════════ -->
+<div id="s-main" class="scr">
+  <div class="scanlines"></div>
+  <!-- Status Bar -->
+  <div id="sbar">
+    <div class="sr1">
+      <div class="day-lbl" id="day-lbl">월요일 ☀️</div>
+      <div class="money-box">
+        <span class="money-lbl">사탕</span>
+        <div class="money-val" id="money-val">🍬 20개</div>
+      </div>
+    </div>
+    <div class="surv-row">
+      <span class="sbar-lbl">노동자 생존력</span>
+      <div class="sbar"><div class="sbar-fill" id="sfill" style="width:100%"></div></div>
+      <span class="surv-pct" id="surv-pct">100%</span>
+    </div>
+  </div>
+
+  <!-- Factory -->
+  <div id="cv-wrap"><div id="danger-ol"></div></div>
+
+  <!-- Message Box -->
+  <div id="msgbox">
+    <div class="msg-spk" id="msg-spk">[ 공장 알림 ]</div>
+    <div class="msg-txt" id="msg-txt">오늘도 공장이 가동을 시작합니다.<span class="cur"></span></div>
+  </div>
+
+  <!-- Action Panel -->
+  <div id="apanel">
+    <!-- 지시 -->
+    <div class="pane on" id="p-지시">
+      <div class="sldr-lbl">임금 수준 <em id="wlbl">보통</em></div>
+      <input type="range" id="wslider" min="0" max="100" value="50" oninput="updPrev()">
+      <div class="sldr-hint"><span>최저 (생존↓↓)</span><span>적정 (균형)</span><span>후함 (생존↑)</span></div>
+      <div class="prev-row">
+        <div class="prev-item"><div class="pl">🍬 오늘 수익</div><div class="pv" id="pv-profit">+2개</div></div>
+        <div class="prev-item"><div class="pl">❤️ 생존력 변화</div><div class="pv" id="pv-surv">-8</div></div>
+        <div class="prev-item"><div class="pl">💰 임금/일</div><div class="pv" id="pv-wage">2개</div></div>
+      </div>
+      <button class="cbtn" onclick="confirmDay()">하 루 끝 내 기 ▶</button>
+    </div>
+
+    <!-- 복지 -->
+    <div class="pane" id="p-복지">
+      <div class="wf-list">
+        <div class="wf-item" id="wf-rest" onclick="togWf('rest')">
+          <div class="wf-chk" id="chk-rest"> </div>
+          <div><div>휴식 시간 1시간 추가</div><div class="wf-eff">🍬 비용 없음 / ❤️ 생존력 +8</div></div>
+        </div>
+        <div class="wf-item" id="wf-food" onclick="togWf('food')">
+          <div class="wf-chk" id="chk-food"> </div>
+          <div><div>식사 개선 제공</div><div class="wf-eff">🍬 -1개 / ❤️ 생존력 +6</div></div>
+        </div>
+        <div class="wf-item" id="wf-safe" onclick="togWf('safe')">
+          <div class="wf-chk" id="chk-safe"> </div>
+          <div><div>안전 장갑 지급</div><div class="wf-eff">🍬 비용 없음 / ❤️ 생존력 +4</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 재무 -->
+    <div class="pane" id="p-재무">
+      <div class="fin-row"><span class="il">🍬 납품 수익</span><span id="fr-rev" style="color:#5AAA5A">+4개</span></div>
+      <div class="fin-row"><span class="il">🏭 공장 운영비</span><span style="color:#D4643A">-3개 (고정)</span></div>
+      <div class="fin-row"><span class="il">👷 노동자 임금</span><span id="fr-wage" style="color:#D4643A">-2개</span></div>
+      <div class="fin-row"><span class="il">❤️ 복지 비용</span><span id="fr-welf" style="color:#D4643A">-0개</span></div>
+      <div class="fin-tot"><span>오늘 순이익</span><span id="fr-net">+2개</span></div>
+      <div class="fin-note">* 1사탕 ≈ ₩500,000 | 원청은 이 제품을 소비자에게 🍬 80개 가격에 판매합니다</div>
+    </div>
+
+    <!-- 정보 -->
+    <div class="pane" id="p-정보">
+      <div class="info-row"><span class="il">납품처</span><span class="iv">LUXE Italia (밀라노)</span></div>
+      <div class="info-row"><span class="il">납품 단가</span><span class="iv">₩80,000 / 개</span></div>
+      <div class="info-row"><span class="il">이번주 물량</span><span class="iv" id="inf-qty">280개</span></div>
+      <div class="info-row"><span class="il">노동자 수</span><span class="iv">122명</span></div>
+      <div class="info-row"><span class="il">현재 생존력</span><span class="iv" id="inf-surv">100%</span></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div id="bnav">
+    <button class="nb on" id="nb-지시" onclick="switchTab('지시')"><span class="ni">📋</span>지시</button>
+    <button class="nb" id="nb-복지" onclick="switchTab('복지')"><span class="ni">🫶</span>복지</button>
+    <button class="nb" id="nb-재무" onclick="switchTab('재무')"><span class="ni">💰</span>재무</button>
+    <button class="nb" id="nb-정보" onclick="switchTab('정보')"><span class="ni">📊</span>정보</button>
+    <button class="nb" id="nb-메뉴" onclick="openMenu()"><span class="ni">☰</span>메뉴</button>
+  </div>
+</div>
+
+<!-- ══ EVENT OVERLAY ═══════════════════════════════════════ -->
+<div id="evt-ovl">
+  <div class="evt-box">
+    <div class="evt-ttl" id="evt-ttl">[ 특수 상황 발생 ]</div>
+    <div class="evt-txt" id="evt-txt"></div>
+    <div class="evt-opts" id="evt-opts"></div>
+  </div>
+</div>
+
+<!-- ══ RESULT MODAL ════════════════════════════════════════ -->
+<div id="res-modal">
+  <div class="res-box">
+    <div class="res-ttl" id="res-ttl">[ 결산 ]</div>
+    <div id="res-rows"></div>
+    <div class="res-comm" id="res-comm"></div>
+    <button class="cbtn" style="margin-top:14px" onclick="nextDay()">다 음 날 ▶</button>
+  </div>
+</div>
+
+<!-- ══ MENU OVERLAY ════════════════════════════════════════ -->
+<div id="menu-ovl">
+  <button class="mcls" onclick="closeMenu()">✕</button>
+  <div class="mttl">메 뉴</div>
+  <button class="mi" onclick="doSave()">저 장 하 기</button>
+  <button class="mi" onclick="doLoad()">불 러 오 기</button>
+  <button class="mi" onclick="doHelp()">도 움 말</button>
+  <button class="mi" onclick="showScr('intro');closeMenu()">타이틀로 이동</button>
+  <div class="mver">버전 1.0.0</div>
+</div>
+
+<!-- ══ GAME OVER ════════════════════════════════════════════ -->
+<div id="s-gameover" class="scr">
+  <div class="go-icon" id="go-icon">💔</div>
+  <div class="go-type" id="go-type">실 신 엔 딩</div>
+  <div class="go-hl" id="go-hl">노동자들이&#10;쓰러졌습니다</div>
+  <div class="go-txt" id="go-txt"></div>
+  <div class="go-stats" id="go-stats"></div>
+  <button class="btn-p" onclick="goTimelapse()">N E X T ▶</button>
+</div>
+
+<!-- ══ TIMELAPSE ════════════════════════════════════════════ -->
+<div id="s-timelapse" class="scr">
+  <canvas id="tl-cv"></canvas>
+  <div class="tl-content">
+    <div class="tl-yr">1 9 7 0 년 대</div>
+    <div class="tl-hl">반세기 전,&#10;같은 일이 있었습니다</div>
+    <div class="tl-txt">1970년 11월 13일&#10;서울 평화시장의 재단사 전태일은&#10;자신의 몸에 불을 붙였습니다.&#10;&#10;"우리는 기계가 아니다"&#10;"근로기준법을 준수하라"&#10;&#10;그의 나이 22세였습니다.</div>
+    <div class="tl-quote">"내 죽음을 헛되이 하지 마라."<br>— 전태일, 1970</div>
+    <button class="btn-p" onclick="goFinalEnd()">N E X T ▶</button>
+  </div>
+</div>
+
+<!-- ══ ENDING (최종 화면) ══════════════════════════════════ -->
+<div id="s-end" class="scr">
+  <img id="end-img" src="static/images/bg-ending.png" alt="">
+  <canvas id="end-cv"></canvas>
+  <div class="end-content">
+    <div class="end-type">지 금 도 계 속 됩 니 다</div>
+    <div class="end-hl">우리가 소비하는 명품 뒤에는&#10;누군가의 가족이 있습니다</div>
+    <div class="end-txt">지금 이탈리아 하청업체 공장의 모습은&#10;우리의 어머니와 할머니들이&#10;가족을 먹여 살리기 위해 미싱을 돌렸던&#10;그 상황과 다르지 않습니다.&#10;&#10;당신의 목소리가 변화를 만듭니다.</div>
+    <div class="end-btns">
+      <a class="end-link" href="https://forms.gle/example" target="_blank">📋 설 문 조 사 참 여 하 기</a>
+      <a class="end-link-s" href="https://www.change.org" target="_blank">🌐 온 라 인 캠 페 인 참 여</a>
+      <button class="btn-s" onclick="restartGame()" style="margin-top:4px">↺ 다 시 하 기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════
+const G = {
+  scr: 'intro',
+  day: 1,          // 1=Mon … 7=Sun
+  money: 20,       // 사탕 단위 (1사탕 ≈ ₩500,000)
+  survival: 100,   // 0–100
+  gender: '',
+  endType: null,
+  wSlider: 50,
+  wf: {rest:false,food:false,safe:false},
+  eventDone: false,
+  daysDone: 0,
+  totalProfit: 0,
+  REVENUE: 4,      // 납품 수익 4사탕/일 (원청이 단가를 낮게 책정)
+  FIXED: 3,        // 공장 운영비 3사탕/일 (고정)
+
+  wageCost(){
+    // 슬라이더 0→최저(0개) ~ 100→후한(5개)
+    return Math.round((this.wSlider/100) * 5);
+  },
+  wfCost(){
+    // 식사 개선만 1개 비용, 나머지는 비금전적 선택
+    return (this.wf.food ? 1 : 0);
+  },
+  survDelta(){
+    // 슬라이더 0 → -25, 75 → 0, 100 → +12
+    let d = -25 + (this.wSlider/100)*37;
+    if(this.wf.rest) d+=8;
+    if(this.wf.food) d+=6;
+    if(this.wf.safe) d+=4;
+    return Math.round(d);
+  },
+  profit(){
+    return this.REVENUE - this.FIXED - this.wageCost() - this.wfCost();
+  }
+};
+
+const DAYS = ['','월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+
+const BRIEFS = {
+  1:'새로운 한 주가 시작됩니다.\n원청 LUXE Italia로부터 이번 주 납품 물량이 도착했습니다.\n총 280개, 단가 ₩80,000입니다. 공장 운영을 시작하세요.',
+  2:'어제보다 작업 속도가 조금 느립니다.\n노동자들의 상태를 확인하고 오늘 하루 방침을 결정하세요.',
+  3:'한 주의 중반입니다.\n오늘 원청 담당자로부터 특별한 연락이 올 예정입니다.',
+  4:'납품 마감이 다가오고 있습니다.\n생산량과 노동자 상태 중 무엇을 우선할지 결정해야 합니다.',
+  5:'주말이 가까워졌습니다.\n노동자들 사이에서 피로 누적에 대한 목소리가 나오고 있습니다.',
+  6:'오늘도 공장은 가동됩니다.\n경쟁 업체들도 주말에 쉬지 않습니다.',
+  7:'마지막 날입니다.\n이번 주 납품 물량의 마지막 분량을 완성해야 합니다.\n오늘 하루가 끝나면 모든 것이 결산됩니다.'
+};
+
+const EVENTS = {
+  3:{
+    ttl:'[ 수요일: 원청의 지시 ]',
+    txt:'원청 LUXE Italia 담당자로부터 전화가 왔습니다.\n\n"납품 일정이 촉박합니다. 기계 안전장치가 작업 속도를\n늦추고 있으니 제거하면 어떻겠습니까?\n그쪽 수익도 늘어날 겁니다."',
+    opts:[
+      {txt:'▶  안전장치 제거를 지시한다\n    🍬 +1개 / 생존력 -22',
+       eff:{m:1,s:-22,lbl:'안전장치 제거'}},
+      {txt:'▶  안전장치 제거를 거부한다\n    🍬 변동 없음 / 생존력 -8',
+       eff:{m:0,s:-8,lbl:'안전장치 유지'}}
+    ]
+  },
+  5:{
+    ttl:'[ 금요일: 노동자 휴식 요구 ]',
+    txt:'노동자 대표가 사무실로 찾아왔습니다.\n\n"이번 주 내내 야근을 했습니다.\n토요일 하루만이라도 쉬게 해주실 수 없겠습니까?\n가족들이 기다리고 있습니다."',
+    opts:[
+      {txt:'▶  휴식을 허가한다\n    생존력 +22 / 🍬 -2개',
+       eff:{m:-2,s:22,lbl:'휴식 허가'}},
+      {txt:'▶  휴식 요구를 거부한다\n    생존력 -16 / 🍬 변동 없음',
+       eff:{m:0,s:-16,lbl:'휴식 거부'}}
+    ]
+  }
+};
+
+const COMMENTS = [
+  '노동자들이 묵묵히 일합니다. 불만은 쌓이고 있지만 아직 표현하지 않습니다.',
+  '노동자들의 표정이 어둡습니다. 이 임금으로는 가족을 부양하기 어렵습니다.',
+  '보통 수준의 하루가 지나갔습니다.',
+  '오늘은 임금을 조금 더 주었습니다. 노동자들의 얼굴이 밝아진 것 같습니다.',
+  '적정한 임금을 지불했습니다.\n하지만 원청 LUXE Italia는 이 가방을 소비자에게 🍬 80개(₩4,000,000)에 팝니다.\n당신이 받는 단가의 40배입니다.'
+];
+
+// ══════════════════════════════════════════════
+//  FACTORY DANGER OVERLAY (CSS, no canvas)
+// ══════════════════════════════════════════════
+function drawFactory(_, surv){
+  const ol=document.getElementById('danger-ol');
+  if(!ol) return;
+  if(surv<65){
+    const a=((65-surv)/65*0.52).toFixed(2);
+    ol.style.background=`rgba(139,26,26,${a})`;
+  } else {
+    ol.style.background='rgba(139,26,26,0)';
+  }
+  ol.classList.toggle('pulse', surv<30);
+}
+
+function glitch(cv, onDone){
+  if(!cv) return onDone&&onDone();
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  let f=0, max=45;
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    const n=Math.floor(Math.random()*8)+2;
+    for(let i=0;i<n;i++){
+      const gy=Math.random()*H, gh=Math.random()*18+2;
+      ctx.fillStyle=`rgba(${Math.floor(Math.random()*200)},0,0,.25)`;
+      ctx.fillRect(0,gy,W,gh);
+    }
+    for(let y=0;y<H;y+=4){ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(0,y,W,2);}
+    if(++f<max) requestAnimationFrame(frame);
+    else{ctx.clearRect(0,0,W,H);onDone&&onDone();}
+  }
+  frame();
+}
+
+// ══════════════════════════════════════════════
+//  SCREEN / UI HELPERS
+// ══════════════════════════════════════════════
+function showScr(name){
+  ['intro','start','main','gameover','timelapse','end'].forEach(n=>{
+    const el=document.getElementById('s-'+n);
+    el.classList.toggle('on',n===name);
+  });
+  G.scr=name;
+  if(name==='main') setTimeout(()=>drawFactory(null,G.survival),60);
+}
+
+
+function selGender(g){
+  G.gender=g;
+  document.getElementById('btn-m').classList.toggle('sel',g==='m');
+  document.getElementById('btn-f').classList.toggle('sel',g==='f');
+}
+
+function switchTab(t){
+  ['지시','복지','재무','정보'].forEach(n=>{
+    document.getElementById('p-'+n).classList.toggle('on',n===t);
+    document.getElementById('nb-'+n).classList.toggle('on',n===t);
+  });
+}
+
+function openMenu(){document.getElementById('menu-ovl').classList.add('on');}
+function closeMenu(){document.getElementById('menu-ovl').classList.remove('on');}
+
+function setMsg(spk,txt){
+  document.getElementById('msg-spk').textContent=spk;
+  const el=document.getElementById('msg-txt');
+  el.innerHTML='';
+  let i=0;
+  function type(){
+    if(i<txt.length){
+      el.innerHTML=txt.slice(0,i+1).replace(/\n/g,'<br>')+'<span class="cur"></span>';
+      i++;setTimeout(type,25);
+    }else{
+      el.innerHTML=txt.replace(/\n/g,'<br>')+'<span class="cur"></span>';
+    }
+  }
+  type();
+}
+
+// ══════════════════════════════════════════════
+//  UI UPDATE
+// ══════════════════════════════════════════════
+function updUI(){
+  const dn=DAYS[G.day]||`${G.day}일`;
+  const ti=G.day>=6?'🌙':'☀️';
+  document.getElementById('day-lbl').textContent=`${dn} ${ti}`;
+
+  // 사탕 표시 (10개 미만이면 빨간색 경고)
+  const mv=document.getElementById('money-val');
+  mv.textContent=`🍬 ${G.money}개`;
+  mv.className='money-val'+(G.money<=5?' low':'');
+
+  // 생존력 바
+  const fill=document.getElementById('sfill');
+  const sv=Math.max(0,G.survival);
+  fill.style.width=sv+'%';
+  fill.className='sbar-fill'+(sv<30?' danger':sv<60?' warn':'');
+  document.getElementById('surv-pct').textContent=sv+'%';
+  document.getElementById('inf-surv').textContent=sv+'%';
+
+  updPrev();
+  drawFactory(null,G.survival);
+}
+
+function updPrev(){
+  G.wSlider=parseInt(document.getElementById('wslider').value);
+  const wc=G.wageCost(), sd=G.survDelta(), pr=G.profit();
+
+  let lbl='보통';
+  if(G.wSlider<20) lbl='최저 수준';
+  else if(G.wSlider<40) lbl='낮음';
+  else if(G.wSlider<65) lbl='보통';
+  else if(G.wSlider<85) lbl='적정';
+  else lbl='후함';
+  document.getElementById('wlbl').textContent=lbl;
+
+  const pEl=document.getElementById('pv-profit');
+  pEl.textContent=(pr>=0?'+':'')+pr+'개';
+  pEl.className='pv '+(pr>=0?'pos':'neg');
+
+  const sEl=document.getElementById('pv-surv');
+  sEl.textContent=(sd>=0?'+':'')+sd;
+  sEl.className='pv '+(sd>=0?'pos':'neg');
+
+  document.getElementById('pv-wage').textContent=wc+'개';
+  document.getElementById('fr-wage').textContent='-'+wc+'개';
+  document.getElementById('fr-welf').textContent='-'+G.wfCost()+'개';
+  const nEl=document.getElementById('fr-net');
+  nEl.textContent=(pr>=0?'+':'')+pr+'개';
+  nEl.style.color=pr>=0?'#5AAA5A':'#D4643A';
+}
+
+function fmtM(n){
+  return (n>=0?'+':'')+n+'개';
+}
+
+// ══════════════════════════════════════════════
+//  GAME START
+// ══════════════════════════════════════════════
+function startGame(){
+  const age=document.getElementById('inp-age').value;
+  if(!age||!G.gender){alert('나이와 성별을 입력해주세요.');return;}
+  G.day=1; G.money=20; G.survival=100;
+  G.wSlider=50; G.wf={rest:false,food:false,safe:false};
+  G.eventDone=false; G.daysDone=0; G.totalProfit=0;
+  document.getElementById('wslider').value=50;
+  resetWf();
+  showScr('main');
+  updUI();
+  setMsg('[ '+DAYS[G.day]+' 아침 ]', BRIEFS[G.day]);
+  switchTab('지시');
+  setTimeout(()=>{
+    if(EVENTS[G.day]&&!G.eventDone) setTimeout(()=>showEvt(G.day),1800);
+  },200);
+}
+
+// ══════════════════════════════════════════════
+//  WELFARE TOGGLE
+// ══════════════════════════════════════════════
+function togWf(k){
+  G.wf[k]=!G.wf[k];
+  document.getElementById('wf-'+k).classList.toggle('sel',G.wf[k]);
+  document.getElementById('chk-'+k).textContent=G.wf[k]?'✓':' ';
+  updPrev();
+}
+
+function resetWf(){
+  ['rest','food','safe'].forEach(k=>{
+    G.wf[k]=false;
+    document.getElementById('wf-'+k).classList.remove('sel');
+    document.getElementById('chk-'+k).textContent=' ';
+  });
+}
+
+// ══════════════════════════════════════════════
+//  EVENTS
+// ══════════════════════════════════════════════
+function showEvt(day){
+  const ev=EVENTS[day];
+  if(!ev) return;
+  document.getElementById('evt-ttl').textContent=ev.ttl;
+  document.getElementById('evt-txt').textContent=ev.txt;
+  const opts=document.getElementById('evt-opts');
+  opts.innerHTML='';
+  ev.opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='eopt'; b.textContent=o.txt;
+    b.onclick=()=>resolveEvt(o.eff);
+    opts.appendChild(b);
+  });
+  document.getElementById('evt-ovl').classList.add('on');
+}
+
+function resolveEvt(eff){
+  G.eventDone=true;
+  document.getElementById('evt-ovl').classList.remove('on');
+  G.money+=eff.m; G.survival=clamp(G.survival+eff.s,0,100);
+  const ms=(eff.m>=0?'+':'')+eff.m+'개';
+  const ss=(eff.s>=0?'+':'')+eff.s;
+  setMsg('[ 결과 ]',`선택: ${eff.lbl}\n🍬 사탕: ${ms} / ❤️ 생존력: ${ss}`);
+  updUI();
+  checkEnd();
+}
+
+// ══════════════════════════════════════════════
+//  CONFIRM DAY
+// ══════════════════════════════════════════════
+function confirmDay(){
+  const pr=G.profit(), sd=G.survDelta();
+  const wc=G.wageCost(), wfC=G.wfCost();
+  G.money+=pr; G.survival=clamp(G.survival+sd,0,100);
+  G.totalProfit+=pr; G.daysDone++;
+  updUI();
+  showResult(pr,sd,wc,wfC);
+}
+
+function showResult(pr,sd,wc,wfC){
+  document.getElementById('res-ttl').textContent=`[ ${DAYS[G.day]} 결산 ]`;
+  const rows=document.getElementById('res-rows');
+  rows.innerHTML=`
+    <div class="res-row"><span class="rl">🍬 납품 수익</span><span class="rp">+${G.REVENUE}개</span></div>
+    <div class="res-row"><span class="rl">🏭 공장 운영비</span><span class="rm">-${G.FIXED}개</span></div>
+    <div class="res-row"><span class="rl">👷 노동자 임금</span><span class="rm">-${wc}개</span></div>
+    <div class="res-row"><span class="rl">❤️ 복지 비용</span><span class="rm">-${wfC}개</span></div>
+    <div class="res-row big"><span>오늘 순이익</span><span class="${pr>=0?'rp':'rm'}">${pr>=0?'+':''}${pr}개</span></div>
+    <div class="res-row"><span class="rl">생존력 변화</span><span class="${sd>=0?'rp':'rm'}">${sd>=0?'+':''}${sd}</span></div>
+    <div class="res-row"><span class="rl">현재 생존력</span><span class="${G.survival<30?'rm':'rp'}">${G.survival}%</span></div>`;
+  document.getElementById('res-comm').textContent=getComment();
+  document.getElementById('res-modal').classList.add('on');
+}
+
+function getComment(){
+  const s=G.wSlider;
+  if(s<20) return COMMENTS[1];
+  if(s<40) return COMMENTS[0];
+  if(s<65) return COMMENTS[2];
+  if(s<85) return COMMENTS[3];
+  return COMMENTS[4];
+}
+
+function nextDay(){
+  document.getElementById('res-modal').classList.remove('on');
+  if(checkEnd()) return;
+  G.day++;
+  if(G.day>7){triggerEnd('sunday');return;}
+  G.eventDone=false;
+  resetWf();
+  document.getElementById('wslider').value=50;
+  G.wSlider=50;
+  updUI();
+  setMsg('[ '+DAYS[G.day]+' 아침 ]',BRIEFS[G.day]);
+  switchTab('지시');
+  if(EVENTS[G.day]&&!G.eventDone) setTimeout(()=>showEvt(G.day),1800);
+}
+
+// ══════════════════════════════════════════════
+//  GAME OVER / ENDINGS
+// ══════════════════════════════════════════════
+function checkEnd(){
+  if(G.survival<=0){setTimeout(()=>triggerEnd('faint'),300);return true;}
+  if(G.money<0){setTimeout(()=>triggerEnd('bankrupt'),300);return true;}
+  return false;
+}
+
+function triggerEnd(type){
+  G.endType=type;
+  const ENDS={
+    faint:{
+      icon:'💔',
+      type:'실 신 엔 딩',
+      hl:'노동자들이\n쓰러졌습니다',
+      txt:'과도한 노동과 열악한 환경으로\n노동자들이 한 명씩 쓰러졌습니다.\n공장 가동이 중단되었습니다.',
+      bg:'#1A0606'
+    },
+    bankrupt:{
+      icon:'💸',
+      type:'파 산 엔 딩',
+      hl:'공장이\n파산했습니다',
+      txt:'원청의 단가 압박을 버티지 못하고\n자금이 바닥났습니다.\n\n노동자들의 마지막 임금도\n지불되지 않았습니다.',
+      bg:'#06060F'
+    },
+    sunday:{
+      icon:'📅',
+      type:'7 일 완 료',
+      hl:'일주일이\n지났습니다',
+      txt:'당신은 7일을 버텼습니다.\n하지만 이것은 게임이 아닙니다.\n지금 이 순간에도, 누군가는\n이 선택을 강요받고 있습니다.',
+      bg:'#0A0806'
+    }
+  };
+  const e=ENDS[type];
+  document.getElementById('go-icon').textContent=e.icon;
+  document.getElementById('go-type').textContent=e.type;
+  document.getElementById('go-hl').textContent=e.hl;
+  document.getElementById('go-txt').textContent=e.txt;
+  document.getElementById('s-gameover').style.background=e.bg;
+
+  document.getElementById('go-stats').innerHTML=`
+    <div class="go-sr"><span class="go-sl">🍬 최종 사탕</span><span>${G.money}개</span></div>
+    <div class="go-sr"><span class="go-sl">❤️ 노동자 생존력</span><span>${G.survival}%</span></div>
+    <div class="go-sr"><span class="go-sl">📅 진행 일수</span><span>${G.daysDone}일</span></div>
+    <div class="go-sr"><span class="go-sl">💰 총 이익</span><span>${G.totalProfit>=0?'+':''}${G.totalProfit}개</span></div>`;
+
+  showScr('gameover');
+}
+
+function goTimelapse(){
+  showScr('timelapse');
+  const cv=document.getElementById('tl-cv');
+  const wrap=document.getElementById('s-timelapse');
+  cv.width=wrap.offsetWidth||480;
+  cv.height=wrap.offsetHeight||800;
+  glitch(cv,null);
+}
+
+function goFinalEnd(){
+  showScr('end');
+  const cv=document.getElementById('end-cv');
+  const wrap=document.getElementById('s-end');
+  cv.width=wrap.offsetWidth||480;
+  cv.height=wrap.offsetHeight||800;
+  const endImg=document.getElementById('end-img');
+  if(endImg) endImg.classList.remove('show');
+  glitch(cv,()=>{
+    if(endImg){
+      endImg.style.filter='sepia(.4) brightness(.5) contrast(1.1)';
+      endImg.classList.add('show');
+    }
+  });
+}
+
+function restartGame(){
+  G.day=1;G.money=20;G.survival=100;
+  G.wSlider=50;G.wf={rest:false,food:false,safe:false};
+  G.eventDone=false;G.daysDone=0;G.totalProfit=0;G.endType=null;
+  document.getElementById('wslider').value=50;
+  resetWf();
+  showScr('start');
+}
+
+// ══════════════════════════════════════════════
+//  MENU ACTIONS
+// ══════════════════════════════════════════════
+function doSave(){
+  const data=JSON.stringify({day:G.day,money:G.money,survival:G.survival,daysDone:G.daysDone,totalProfit:G.totalProfit});
+  localStorage.setItem('lbl_save',data);
+  closeMenu();setMsg('[ 저장 ]','게임이 저장되었습니다.');
+}
+
+function doLoad(){
+  const d=localStorage.getItem('lbl_save');
+  if(!d){closeMenu();setMsg('[ 불러오기 ]','저장된 데이터가 없습니다.');return;}
+  const s=JSON.parse(d);
+  G.day=s.day;G.money=s.money;G.survival=s.survival;
+  G.daysDone=s.daysDone;G.totalProfit=s.totalProfit;
+  G.eventDone=false;G.wf={rest:false,food:false,safe:false};
+  document.getElementById('wslider').value=50;G.wSlider=50;
+  resetWf();closeMenu();
+  showScr('main');updUI();
+  setMsg('[ 불러오기 ]',`저장된 데이터를 불러왔습니다.\n${DAYS[G.day]} 아침입니다.\n🍬 사탕 ${G.money}개 / ❤️ 생존력 ${G.survival}%`);
+}
+
+function doHelp(){
+  closeMenu();
+  setMsg('[ 도움말 ]','지시 탭: 임금 수준을 슬라이더로 결정합니다.\n복지 탭: 추가 복지 조치를 선택합니다.\n재무 탭: 오늘의 예상 수지를 확인합니다.\n정보 탭: 납품 정보를 확인합니다.\n\n목표: 7일이 지날 때까지\n파산(자금 0)하지 않고\n노동자 생존력을 유지하세요.');
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+
+window.addEventListener('resize',()=>{
+  if(G.scr==='main') drawFactory(null,G.survival);
+});
+
+// init
+showScr('intro');
+</script>
+</body>
+</html>

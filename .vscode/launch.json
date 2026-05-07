@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "게임 열기 (Chrome)",
+            "file": "${workspaceFolder}/index.html"
+        },
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "게임 열기 (Edge)",
+            "file": "${workspaceFolder}/index.html"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Flask 서버로 실행 (localhost:5000)",
+            "url": "http://localhost:5000",
+            "webRoot": "${workspaceFolder}"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Flask 서버 + Chrome",
+            "configurations": ["Flask 서버로 실행 (localhost:5000)"],
+            "preLaunchTask": "Flask 서버 시작"
+        }
+    ]
+}
