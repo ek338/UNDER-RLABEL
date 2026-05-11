@@ -199,6 +199,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .tl-txt{font-size:11px;color:var(--cream);line-height:2.1;text-align:left;border-left:2px solid var(--amber);padding-left:12px;white-space:pre-line;}
 .tl-quote{font-size:12px;color:var(--cream2);font-style:italic;line-height:1.9;padding:12px 14px;background:rgba(44,24,16,.7);border:1px solid #2A1208;width:100%;text-align:left;}
 
+/* ── TUTORIAL ────────────────────────────────────── */
+#tuto-ovl{display:none;position:fixed;inset:0;z-index:500;}
+#tuto-ovl.on{display:block;}
+#tuto-hi{position:fixed;border:2px solid var(--amber);box-shadow:0 0 0 9999px rgba(10,6,3,.83);transition:top .25s,left .25s,width .25s,height .25s;pointer-events:none;z-index:501;border-radius:2px;}
+#tuto-box{position:fixed;background:var(--br-md);border:2px solid var(--amber);padding:16px 18px;width:min(320px,calc(100vw - 32px));z-index:502;box-shadow:0 0 24px rgba(196,131,42,.25);}
+.tuto-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;border-bottom:1px solid #2A1208;padding-bottom:8px;}
+.tuto-num{font-size:9px;color:var(--amber2);letter-spacing:.3em;}
+.tuto-ttl{font-size:13px;color:var(--cream2);letter-spacing:.08em;font-weight:bold;}
+.tuto-desc{font-size:11px;color:var(--cream);line-height:2;white-space:pre-line;min-height:72px;}
+.tuto-btns{display:flex;gap:8px;margin-top:12px;align-items:center;}
+.tuto-btn{background:var(--br-dk);border:1px solid var(--amber);color:var(--cream);font-family:inherit;font-size:11px;padding:8px 14px;cursor:pointer;transition:.1s;letter-spacing:.06em;flex-shrink:0;}
+.tuto-btn:hover{background:var(--amber);color:var(--br-dk);}
+.tuto-btn:disabled{opacity:.3;cursor:default;}
+.tuto-btn.skip{border-color:#3A1A08;color:#5A3A2A;font-size:10px;flex:1;text-align:center;}
+.tuto-btn.skip:hover{border-color:var(--amber);color:var(--cream);}
+
 /* ── FINAL END links ──────────────────────────────── */
 .end-link{display:block;width:100%;background:var(--amber);border:none;color:var(--br-dk);font-family:inherit;font-size:13px;font-weight:bold;letter-spacing:.15em;padding:13px;cursor:pointer;text-decoration:none;text-align:center;transition:.1s;margin-bottom:8px;}
 .end-link:hover{background:var(--cream2);}
@@ -410,6 +426,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <a class="end-link" href="https://forms.gle/example" target="_blank">📋 설 문 조 사 참 여 하 기</a>
       <a class="end-link-s" href="https://www.change.org" target="_blank">🌐 온 라 인 캠 페 인 참 여</a>
       <button class="btn-s" onclick="restartGame()" style="margin-top:4px">↺ 다 시 하 기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TUTORIAL OVERLAY ════════════════════════════════════ -->
+<div id="tuto-ovl">
+  <div id="tuto-hi"></div>
+  <div id="tuto-box">
+    <div class="tuto-hdr">
+      <span class="tuto-num" id="tuto-num">1 / 7</span>
+      <span class="tuto-ttl" id="tuto-ttl"></span>
+    </div>
+    <div class="tuto-desc" id="tuto-desc"></div>
+    <div class="tuto-btns">
+      <button class="tuto-btn" id="tuto-prev" onclick="tutoPrev()">◀ 이전</button>
+      <button class="tuto-btn skip" onclick="tutoSkip()">건너뛰기</button>
+      <button class="tuto-btn" id="tuto-next" onclick="tutoNext()">다음 ▶</button>
     </div>
   </div>
 </div>
@@ -649,9 +682,7 @@ function startGame(){
   updUI();
   setMsg('[ '+DAYS[G.day]+' 아침 ]', BRIEFS[G.day]);
   switchTab('지시');
-  setTimeout(()=>{
-    if(EVENTS[G.day]&&!G.eventDone) setTimeout(()=>showEvt(G.day),1800);
-  },200);
+  setTimeout(startTuto, 350);
 }
 
 // ══════════════════════════════════════════════
@@ -867,6 +898,78 @@ function doHelp(){
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  TUTORIAL
+// ══════════════════════════════════════════════
+const TUTO=[
+  {sel:'#sbar',       box:'below', ttl:'📊 상태 표시줄',
+   desc:'게임의 핵심 정보가 여기 모여 있습니다.\n현재 요일, 보유 사탕(자금),\n노동자 생존력을 항상 확인하세요.'},
+  {sel:'#money-val',  box:'below', ttl:'🍬 사탕 = 회사 자금',
+   desc:'1사탕 ≈ ₩500,000\n\n매일 납품 수익 +4개가 들어오지만\n공장 운영비 -3개와 임금이 빠져나갑니다.\n사탕이 음수가 되면 파산 엔딩입니다.'},
+  {sel:'.sbar',       box:'below', ttl:'❤️ 노동자 생존력',
+   desc:'노동자들의 상태를 나타냅니다.\n\n0%가 되면 노동자들이 쓰러져\n공장이 강제 종료됩니다.\n초록 → 노란색 → 빨간색 순으로 위험해집니다.'},
+  {sel:'#cv-wrap',    box:'below', ttl:'🏭 공장 현황',
+   desc:'생존력이 낮아질수록\n공장이 붉게 물들며 깜빡입니다.\n\n노동자들이 얼마나 힘든지\n눈으로 바로 확인할 수 있습니다.'},
+  {sel:'#p-지시',    box:'above', ttl:'📋 임금 슬라이더',
+   desc:'임금을 낮추면 🍬 사탕이 늘지만\n❤️ 생존력이 빠르게 떨어집니다.\n\n임금을 올리면 노동자는 살지만\n🍬 사탕이 줄어 파산 위험이 높아집니다.\n\n어느 쪽도 7일을 버티기 쉽지 않습니다.'},
+  {sel:'#bnav',       box:'above', ttl:'📌 하단 탭 메뉴',
+   desc:'지시 — 임금 수준 결정 (매일 필수)\n복지 — 추가 복지 제공 (생존력 ↑)\n재무 — 오늘 예상 수지 미리 확인\n정보 — 납품처 현황 확인'},
+  {sel:null,          box:'center',ttl:'⚠️ 이 게임의 핵심 구조',
+   desc:'원청 LUXE Italia는 이 가방을\n소비자에게 🍬 80개에 판매합니다.\n\n당신의 납품 단가는 🍬 4개.\n그 차액은 모두 원청의 이익입니다.\n\n이 구조 안에서 노동자의 권리를\n지키는 것은 처음부터 불가능합니다.'}
+];
+
+let tIdx=0;
+
+function startTuto(){
+  tIdx=0;
+  document.getElementById('tuto-ovl').classList.add('on');
+  renderTuto();
+}
+
+function renderTuto(){
+  const s=TUTO[tIdx];
+  document.getElementById('tuto-num').textContent=`${tIdx+1} / ${TUTO.length}`;
+  document.getElementById('tuto-ttl').textContent=s.ttl;
+  document.getElementById('tuto-desc').textContent=s.desc;
+  document.getElementById('tuto-prev').disabled=(tIdx===0);
+  document.getElementById('tuto-next').textContent=tIdx===TUTO.length-1?'시작하기 ✓':'다음 ▶';
+
+  const hi=document.getElementById('tuto-hi');
+  const box=document.getElementById('tuto-box');
+  box.style.cssText='';
+
+  if(s.sel){
+    const el=document.querySelector(s.sel);
+    if(el){
+      const r=el.getBoundingClientRect(), p=6;
+      hi.style.cssText=`display:block;top:${r.top-p}px;left:${r.left-p}px;width:${r.width+p*2}px;height:${r.height+p*2}px;`;
+      const bw=Math.min(320,window.innerWidth-32);
+      const bx=Math.max(16,Math.min(r.left,window.innerWidth-bw-16));
+      box.style.left=bx+'px';
+      box.style.width=bw+'px';
+      if(s.box==='below'){
+        box.style.top=(r.bottom+14)+'px';
+      } else {
+        box.style.bottom=(window.innerHeight-r.top+14)+'px';
+      }
+    }
+  } else {
+    hi.style.cssText='display:none;';
+    box.style.top='50%';
+    box.style.left='50%';
+    box.style.transform='translate(-50%,-50%)';
+    box.style.width=Math.min(320,window.innerWidth-32)+'px';
+  }
+}
+
+function tutoNext(){
+  if(tIdx<TUTO.length-1){tIdx++;renderTuto();}
+  else tutoEnd();
+}
+function tutoPrev(){if(tIdx>0){tIdx--;renderTuto();}}
+function tutoSkip(){tutoEnd();}
+function tutoEnd(){document.getElementById('tuto-ovl').classList.remove('on');}
+
 function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
 
 window.addEventListener('resize',()=>{
