@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>라벨 뒤의 이야기</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -16,11 +16,11 @@ body{
   background:var(--bg);color:var(--cream);
   font-family:'Courier New','나눔고딕코딩','Malgun Gothic',monospace;
   display:flex;justify-content:center;align-items:center;
-  min-height:100vh;overflow:hidden;
+  min-height:100vh;min-height:100dvh;overflow:hidden;
 }
 
 /* ── SCREENS ─────────────────────────────────────── */
-.scr{display:none;width:var(--W);height:100vh;max-height:900px;flex-direction:column;position:relative;overflow:hidden;}
+.scr{display:none;width:var(--W);height:100vh;height:100dvh;max-height:900px;flex-direction:column;position:relative;overflow:hidden;}
 .scr.on{display:flex;}
 
 /* ── INTRO ───────────────────────────────────────── */
@@ -122,7 +122,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .il{color:#7A5A4A;}.iv{color:var(--cream2);}
 
 /* Bottom nav */
-#bnav{display:flex;border-top:2px solid var(--amber);background:var(--br-dk);flex-shrink:0;z-index:2;}
+#bnav{display:flex;border-top:2px solid var(--amber);background:var(--br-dk);flex-shrink:0;z-index:2;padding-bottom:env(safe-area-inset-bottom,0px);}
 .nb{flex:1;background:none;border:none;border-right:1px solid #2A1208;color:var(--cream);font-family:inherit;font-size:9px;letter-spacing:.05em;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.1s;}
 .nb:last-child{border-right:none;}
 .nb.on{background:var(--br-lt);color:var(--amber2);}
