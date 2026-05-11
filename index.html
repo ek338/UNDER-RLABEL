@@ -70,6 +70,14 @@ body{
 .sbar-fill.danger{background:var(--red);animation:pulse-red .8s infinite alternate;}
 @keyframes pulse-red{from{opacity:.7}to{opacity:1}}
 .sbar-lbl{font-size:9px;color:var(--amber2);letter-spacing:.08em;min-width:54px;}
+/* ESG 평판 바 */
+.rep-row{display:flex;align-items:center;gap:8px;margin-top:5px;}
+.rep-lbl{font-size:9px;color:#9A7ACA;letter-spacing:.08em;min-width:54px;}
+.rep-bar{flex:1;height:8px;background:rgba(0,0,0,.4);border:1px solid #6A4A9A;overflow:hidden;border-radius:1px;}
+.rep-fill{height:100%;background:#7A5AAA;transition:width .5s,background .5s;}
+.rep-fill.warn{background:#CC6600;}
+.rep-fill.danger{background:#8B1A1A;animation:pulse-red .8s infinite alternate;}
+.rep-pct{font-size:12px;color:var(--cream2);min-width:36px;text-align:right;font-weight:bold;}
 
 /* Factory area */
 #cv-wrap{flex:1;min-height:120px;position:relative;overflow:hidden;background:url('static/images/bg-faotory.png') center/cover no-repeat;background-color:#1E1008;}
@@ -288,6 +296,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="sbar"><div class="sbar-fill" id="sfill" style="width:100%"></div></div>
       <span class="surv-pct" id="surv-pct">100%</span>
     </div>
+    <div class="rep-row">
+      <span class="rep-lbl">🏢 브랜드평판</span>
+      <div class="rep-bar"><div class="rep-fill" id="rfill" style="width:100%"></div></div>
+      <span class="rep-pct" id="rep-pct">100%</span>
+    </div>
   </div>
 
   <!-- Factory -->
@@ -463,6 +476,8 @@ const G = {
   eventDone: false,
   daysDone: 0,
   totalProfit: 0,
+  reputation: 100,  // 브랜드 평판(ESG) 0–100
+  esgWarned: false, // 이번 위험 구간에서 경고 표시 여부
   REVENUE: 4,      // 납품 수익 4사탕/일 (원청이 단가를 낮게 책정)
   FIXED: 3,        // 공장 운영비 3사탕/일 (고정)
 
@@ -484,6 +499,12 @@ const G = {
   },
   profit(){
     return this.REVENUE - this.FIXED - this.wageCost() - this.wfCost();
+  },
+  esgDelta(){
+    if(this.survival < 30) return -20;
+    if(this.survival < 50) return -8;
+    if(this.survival < 70) return -2;
+    return 3;
   }
 };
 
@@ -631,6 +652,13 @@ function updUI(){
   document.getElementById('surv-pct').textContent=sv+'%';
   document.getElementById('inf-surv').textContent=sv+'%';
 
+  // 브랜드 평판(ESG) 바
+  const rfill=document.getElementById('rfill');
+  const rv=Math.max(0,G.reputation);
+  rfill.style.width=rv+'%';
+  rfill.className='rep-fill'+(rv<30?' danger':rv<60?' warn':'');
+  document.getElementById('rep-pct').textContent=rv+'%';
+
   updPrev();
   drawFactory(null,G.survival);
 }
@@ -676,6 +704,7 @@ function startGame(){
   G.day=1; G.money=20; G.survival=100;
   G.wSlider=50; G.wf={rest:false,food:false,safe:false};
   G.eventDone=false; G.daysDone=0; G.totalProfit=0;
+  G.reputation=100; G.esgWarned=false;
   document.getElementById('wslider').value=50;
   resetWf();
   showScr('main');
@@ -740,12 +769,14 @@ function confirmDay(){
   const pr=G.profit(), sd=G.survDelta();
   const wc=G.wageCost(), wfC=G.wfCost();
   G.money+=pr; G.survival=clamp(G.survival+sd,0,100);
+  const ed=G.esgDelta();
+  G.reputation=clamp(G.reputation+ed,0,100);
   G.totalProfit+=pr; G.daysDone++;
   updUI();
-  showResult(pr,sd,wc,wfC);
+  showResult(pr,sd,wc,wfC,ed);
 }
 
-function showResult(pr,sd,wc,wfC){
+function showResult(pr,sd,wc,wfC,ed){
   document.getElementById('res-ttl').textContent=`[ ${DAYS[G.day]} 결산 ]`;
   const rows=document.getElementById('res-rows');
   rows.innerHTML=`
@@ -755,7 +786,9 @@ function showResult(pr,sd,wc,wfC){
     <div class="res-row"><span class="rl">❤️ 복지 비용</span><span class="rm">-${wfC}개</span></div>
     <div class="res-row big"><span>오늘 순이익</span><span class="${pr>=0?'rp':'rm'}">${pr>=0?'+':''}${pr}개</span></div>
     <div class="res-row"><span class="rl">생존력 변화</span><span class="${sd>=0?'rp':'rm'}">${sd>=0?'+':''}${sd}</span></div>
-    <div class="res-row"><span class="rl">현재 생존력</span><span class="${G.survival<30?'rm':'rp'}">${G.survival}%</span></div>`;
+    <div class="res-row"><span class="rl">현재 생존력</span><span class="${G.survival<30?'rm':'rp'}">${G.survival}%</span></div>
+    <div class="res-row"><span class="rl">🏢 브랜드 평판 변화</span><span class="${ed>=0?'rp':'rm'}">${ed>=0?'+':''}${ed}</span></div>
+    <div class="res-row"><span class="rl">현재 평판(ESG)</span><span class="${G.reputation<30?'rm':G.reputation<60?'':'rp'}">${G.reputation}%</span></div>`;
   document.getElementById('res-comm').textContent=getComment();
   document.getElementById('res-modal').classList.add('on');
 }
@@ -772,6 +805,17 @@ function getComment(){
 function nextDay(){
   document.getElementById('res-modal').classList.remove('on');
   if(checkEnd()) return;
+  if(G.survival<30 && !G.esgWarned){
+    G.esgWarned=true;
+    const type=G.reputation<50?'esg_drop':'boycott';
+    showEsgWarning(type, continueNextDay);
+    return;
+  }
+  if(G.survival>=50) G.esgWarned=false;
+  continueNextDay();
+}
+
+function continueNextDay(){
   G.day++;
   if(G.day>7){triggerEnd('sunday');return;}
   G.eventDone=false;
@@ -784,10 +828,35 @@ function nextDay(){
   if(EVENTS[G.day]&&!G.eventDone) setTimeout(()=>showEvt(G.day),1800);
 }
 
+function showEsgWarning(type, cb){
+  const msgs={
+    boycott:{
+      ttl:'[ 🚨 불매 운동 발생 ]',
+      txt:'노동자 착취 실태가 SNS를 통해 확산되고 있습니다.\n\n"이 브랜드 불매합니다" 해시태그가\n실시간 트렌드에 올랐습니다.\n\n브랜드 평판이 급격히 하락하고 있습니다.\n⚠️ 평판이 0%가 되면 강제 폐업 처리됩니다.'
+    },
+    esg_drop:{
+      ttl:'[ 📉 ESG 등급 하락 ]',
+      txt:'글로벌 ESG 평가기관이 당신 회사 등급을\nD등급으로 강등했습니다.\n\n"노동환경 미달 · 인권 리스크 심각"\n\n기관 투자자들이 지분 매각을 시작했습니다.\n⚠️ 평판이 0%가 되면 투자자 이탈로 강제 폐업됩니다.'
+    }
+  };
+  const m=msgs[type];
+  document.getElementById('evt-ttl').textContent=m.ttl;
+  document.getElementById('evt-txt').textContent=m.txt;
+  const opts=document.getElementById('evt-opts');
+  opts.innerHTML='';
+  const b=document.createElement('button');
+  b.className='eopt';
+  b.textContent='▶  확인했습니다';
+  b.onclick=()=>{document.getElementById('evt-ovl').classList.remove('on');cb&&cb();};
+  opts.appendChild(b);
+  document.getElementById('evt-ovl').classList.add('on');
+}
+
 // ══════════════════════════════════════════════
 //  GAME OVER / ENDINGS
 // ══════════════════════════════════════════════
 function checkEnd(){
+  if(G.reputation<=0){setTimeout(()=>triggerEnd('closure'),300);return true;}
   if(G.survival<=0){setTimeout(()=>triggerEnd('faint'),300);return true;}
   if(G.money<0){setTimeout(()=>triggerEnd('bankrupt'),300);return true;}
   return false;
@@ -816,6 +885,13 @@ function triggerEnd(type){
       hl:'일주일이\n지났습니다',
       txt:'당신은 7일을 버텼습니다.\n하지만 이것은 게임이 아닙니다.\n지금 이 순간에도, 누군가는\n이 선택을 강요받고 있습니다.',
       bg:'#0A0806'
+    },
+    closure:{
+      icon:'📉',
+      type:'강 제 폐 업',
+      hl:'투자자들이\n모두 떠났습니다',
+      txt:'브랜드 평판이 바닥났습니다.\n불매 운동 확산과 ESG 등급 하락으로\n기관 투자자들이 자금을 회수했습니다.\n\n사탕이 남아있었음에도 불구하고\n기업은 존속할 수 없었습니다.\n\n노동 환경은 단순한 도덕 문제가 아닌\n기업 생존의 문제입니다.',
+      bg:'#06060F'
     }
   };
   const e=ENDS[type];
@@ -828,6 +904,7 @@ function triggerEnd(type){
   document.getElementById('go-stats').innerHTML=`
     <div class="go-sr"><span class="go-sl">🍬 최종 사탕</span><span>${G.money}개</span></div>
     <div class="go-sr"><span class="go-sl">❤️ 노동자 생존력</span><span>${G.survival}%</span></div>
+    <div class="go-sr"><span class="go-sl">🏢 브랜드 평판</span><span>${G.reputation}%</span></div>
     <div class="go-sr"><span class="go-sl">📅 진행 일수</span><span>${G.daysDone}일</span></div>
     <div class="go-sr"><span class="go-sl">💰 총 이익</span><span>${G.totalProfit>=0?'+':''}${G.totalProfit}개</span></div>`;
 
@@ -863,6 +940,7 @@ function restartGame(){
   G.day=1;G.money=20;G.survival=100;
   G.wSlider=50;G.wf={rest:false,food:false,safe:false};
   G.eventDone=false;G.daysDone=0;G.totalProfit=0;G.endType=null;
+  G.reputation=100;G.esgWarned=false;
   document.getElementById('wslider').value=50;
   resetWf();
   showScr('start');
